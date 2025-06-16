@@ -10,12 +10,20 @@ from leitura_arquivo_drive import *
 CREDENTIALS_PATH = 'credentials/people-analytics-pipoca-agil-google-drive.json'
 
 # Transformação de dados
+# TODO: essa classe está duplicada. seria legal colocá-la em um arquivo separado
+# data_transformer.py e nos arquivos que precisarem dessa classe podem importá-la
 class DataTransformer:
+    """
+    Transformação de dados <- comentários podem estar na docstring da classe. 
+    docstring é essa string com tres aspas
+    """
     def __init__(self, df_raw, file_name):
         self.df_raw = df_raw
         self.file_name = file_name
     
     def retirar_acento(self, frase):
+        # TODO: seria interessante usar uma função pronta para isso 
+        # https://www.geeksforgeeks.org/python/how-to-remove-string-accents-using-python-3/
         nova = frase.lower()
         nova = re.sub(r'[àáâãäå]', 'a', nova)
         nova = re.sub(r'[èéêë]', 'e', nova)
@@ -33,6 +41,10 @@ class DataTransformer:
         return fase4
     
     def verificar_email(self, email):
+        # existem bibliotecas que fazem validação de email.
+        # mas de fato  é discutível se é preciso adicionar uma dependência só para isso.
+        # porém usar uma função pronta evita bugs. validação de email tem uma RFC muito restrita
+        # mesmo assim recomendo usar na proxima https://pypi.org/project/email-validator/
         padraoEmail = r'^[\w\-.]+@[\w-]+\.[a-zA-Z]{2,}$'
         return "Pass" if re.match(padraoEmail, email) else "Email Incorreto"
     
@@ -48,6 +60,8 @@ class DataTransformer:
         self.df_raw.columns = colunas + [f'pergunta_{i}' for i in range(len(self.df_raw.columns) - len(colunas))]
     
     def validar_email(self):
+        # TODO: o .apply do pandas geralmente é lento.
+        # provavelmente não há problema em usá-lo em nosso caso pois não é um grande volume de dados.
         self.df_raw['emailRespondente'] = self.df_raw['emailRespondente'].apply(lambda x: x if self.verificar_email(x) == 'Pass' else None)
     
     def clean_empty_rows(self):
@@ -58,6 +72,9 @@ class DataTransformer:
     def transformar_dados(self):
         self.renomear_colunas_autoavaliacao()
         self.validar_email()
+        # TODO: o pandas tem uma função vetorizada (que não precisa de apply) que faz isso
+        # https://pandas.pydata.org/docs/reference/api/pandas.to_datetime.html
+        # a nao ser em casos especiais (quando a validação que ela faz não é a correta), é recomendado usar
         self.df_raw['timestamp'] = self.df_raw['timestamp'].apply(self.padronizar_datastring)
         self.clean_empty_rows()
         return self.df_raw
@@ -132,7 +149,7 @@ def processar_fato_respostas(drive_manager, transformer, relatorio):
 # Executar o processamento
 if __name__ == "__main__":
     setup_logging()
-    relatorio_raw = "avaliacao_projeto.xlsx"
+    relatorio_raw = "avaliacao_projeto.xlsx"S
     file_name = "avaliacao_projeto.xlsx"
     relatorio = "avaliacao_projeto"
     relatorio_final = 'fato_respostas'
