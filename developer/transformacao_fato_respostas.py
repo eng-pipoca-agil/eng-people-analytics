@@ -21,6 +21,10 @@ class TransformerFatoRespostas:
         #coluna com o tipo de dados das respostas
         tipo_repostas = ['int','int','int','int','int','int','int','int','boolean','int','int','int','int','int','int','int',
                  'str']
+        # TODO: Avaliar refatoração para tornar as listas tipo_perguntas e tipo_respostas mais limpas e legíveis:
+        # tipo_perguntas = ['Quantitativa de 0 a 10'] * 8 + ['sim/nao'] + ['Quantitativa de 0 a 10'] * 7 + ['Descritiva, texto de opinião']
+        # tipo_respostas = ['int'] * 8 + ['boolean'] + ['int'] * 7 + ['str']
+
         #coluna com as perguntas
         perguntas = df_copy.keys().tolist()[5:22]
         #Cada entrevistado, que representa uma linha, que terá que ser transposta separadamente, transformado em dataframe e depois
