@@ -22,7 +22,7 @@ drive_service = auth.drive_service  # Obter o serviço de drive autenticado
 drive_manager = GoogleDriveManager(drive_service)  # Passar o serviço de drive para o construtor
 sheets_manager = GoogleSheetsManager(auth.sheets_client)
 
-
+# TODO: Com a centralização futura em um único main, considerar extrair esse bloco para uma função principal.
 try:
     # Transformação do raw para trusted
     processar_camada_raw(sheets_manager, drive_manager, relatorio)
