@@ -22,11 +22,6 @@ class DataTransformer:
         nova = re.sub(r'ç', 'c', nova)
         return nova
     
-    def verificar_email(self, email):
-        if isinstance(email, str):
-            padraoEmail = r'^[\w\-.]+@[\w-]+\.[a-zA-Z]{2,}$'
-            return "Pass" if re.match(padraoEmail, email) else None
-        return None
     
     def padronizar_datastring(self, dataStamp): 
         try:
@@ -41,7 +36,9 @@ class DataTransformer:
         self.df_raw.columns = colunas_fixas + colunas_variaveis
     
     def validar_email(self):
-        self.df_raw['emailRespondente'] = self.df_raw['emailRespondente'].astype(str).apply(self.verificar_email)
+        padrao_email = r'^[\w-.]+@[\w-]+.[a-zA-Z]{2,}$'
+        self.df_raw['emailRespondente'] = self.df_raw['emailRespondente'].where(
+         self.df_raw['emailRespondente'].str.fullmatch(padrao_email))
     
     def clean_empty_rows(self):
         self.df_raw.drop_duplicates(inplace=True)

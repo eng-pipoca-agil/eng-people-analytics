@@ -32,10 +32,6 @@ class DataTransformer:
         fase4 = re.sub(' ', '_', fase3)
         return fase4
     
-    def verificar_email(self, email):
-        padraoEmail = r'^[\w\-.]+@[\w-]+\.[a-zA-Z]{2,}$'
-        return "Pass" if re.match(padraoEmail, email) else "Email Incorreto"
-    
     def padronizar_datastring(self, dataStamp): 
         try:
             parsed_date = parse(str(dataStamp))
@@ -47,8 +43,15 @@ class DataTransformer:
         colunas = ['timestamp', 'emailRespondente', 'nomeRespondente', 'funcaoDesempenha', 'equipeParticipante']
         self.df_raw.columns = colunas + [f'pergunta_{i}' for i in range(len(self.df_raw.columns) - len(colunas))]
     
+    def transformar_simnao_zeroum(self):
+       df_copy=self.df_raw
+       df_copy['pergunta_8'].map({'sim': 1, 'nao': 0, 'não':0})
+       self.df_raw=df_copy
+
     def validar_email(self):
-        self.df_raw['emailRespondente'] = self.df_raw['emailRespondente'].apply(lambda x: x if self.verificar_email(x) == 'Pass' else None)
+        padrao_email = r'^[\w-.]+@[\w-]+.[a-zA-Z]{2,}$'
+        self.df_raw['emailRespondente'] = self.df_raw['emailRespondente'].where(
+         self.df_raw['emailRespondente'].str.fullmatch(padrao_email))
     
     def clean_empty_rows(self):
         df_copy = self.df_raw
@@ -59,6 +62,7 @@ class DataTransformer:
         self.renomear_colunas_autoavaliacao()
         self.validar_email()
         self.df_raw['timestamp'] = self.df_raw['timestamp'].apply(self.padronizar_datastring)
+        self.transformar_simnao_zeroum()
         self.clean_empty_rows()
         return self.df_raw
 
@@ -70,17 +74,9 @@ class TransformerFatoRespostas:
 
     def transformar_trusted_fato_respostas(self):
         df_copy = pd.DataFrame(self.df_trusted)
-        tipo_perguntas = [
-            'Quantitativa de 0 a 10', 'Quantitativa de 0 a 10', 'Quantitativa de 0 a 10', 'Quantitativa de 0 a 10',
-            'Quantitativa de 0 a 10', 'Quantitativa de 0 a 10', 'Quantitativa de 0 a 10', 'Quantitativa de 0 a 10',
-            'sim/nao', 'Quantitativa de 0 a 10', 'Quantitativa de 0 a 10', 'Quantitativa de 0 a 10',
-            'Quantitativa de 0 a 10', 'Quantitativa de 0 a 10', 'Quantitativa de 0 a 10', 'Quantitativa de 0 a 10',
-            'Descritiva, texto de opinião'
-        ]
-        tipo_repostas = [
-            'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'boolean', 'int', 'int', 'int', 'int', 'int', 'int', 'int',
-            'str'
-        ]
+        tipo_perguntas = ['Quantitativa de 0 a 10'] * 8 + ['sim/nao'] + ['Quantitativa de 0 a 10'] * 7 + ['Descritiva, texto de opinião']
+        # coluna com o tipo de dados das respostas
+        tipo_repostas = ['int'] * 16 +['str']
         perguntas = df_copy.columns.tolist()[5:22]
         all_df = []
         for i_entrevistado in range(df_copy.shape[0]):
